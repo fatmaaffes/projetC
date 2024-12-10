@@ -1,0 +1,613 @@
+<html>
+<head>
+<title>main.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #b3ae60;}
+.s1 { color: #bcbec4;}
+.s2 { color: #6aab73;}
+.s3 { color: #7a7e85;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #bcbec4;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.c</font>
+</center></td></tr></table>
+<pre><span class="s0">#include </span><span class="s2">&lt;stdio.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;stdlib.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;string.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;ctype.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;time.h&gt;</span>
+<span class="s0">#define </span><span class="s1">CURSOR_HOME </span><span class="s2">&quot;\033[H&quot;</span>
+<span class="s0">#define </span><span class="s1">CLEAR_SCREEN </span><span class="s2">&quot;\033[2J&quot;</span>
+<span class="s0">#define </span><span class="s1">BG_WHITE </span><span class="s2">&quot;\033[48;2;255;255;255m&quot;</span>
+<span class="s0">#define </span><span class="s1">BOLD       </span><span class="s2">&quot;\x1b[1m&quot;</span>
+<span class="s0">#define </span><span class="s1">UNDERLINE  </span><span class="s2">&quot;\x1b[4m&quot;</span>
+<span class="s0">#define </span><span class="s1">BLINK      </span><span class="s2">&quot;\x1b[5m&quot;</span>
+<span class="s0">#define </span><span class="s1">BG_WHITE   </span><span class="s2">&quot;\x1b[47m&quot;</span>
+<span class="s0">#define </span><span class="s1">BG_BRIGHT_WHITE   </span><span class="s2">&quot;\x1b[107m&quot;</span>
+<span class="s0">#define </span><span class="s1">RED        </span><span class="s2">&quot;\x1b[31m&quot;</span>
+<span class="s0">#define </span><span class="s1">RESET      </span><span class="s2">&quot;\x1b[0m&quot;</span>
+<span class="s0">#define </span><span class="s1">GREEN      </span><span class="s2">&quot;\x1b[32m&quot;</span>
+<span class="s0">#define </span><span class="s1">YELLOW     </span><span class="s2">&quot;\x1b[33m&quot;</span>
+<span class="s0">#define </span><span class="s1">BLUE       </span><span class="s2">&quot;\x1b[34m&quot;</span>
+<span class="s0">#define </span><span class="s1">MAGENTA    </span><span class="s2">&quot;\x1b[35m&quot;</span>
+<span class="s0">#define </span><span class="s1">CYAN      </span><span class="s2">&quot;\x1b[36m&quot;</span>
+<span class="s0">#define </span><span class="s1">WHITE     </span><span class="s2">&quot;\x1b[37m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_MAGENTA </span><span class="s2">&quot;\x1b[95m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_YELLOW </span><span class="s2">&quot;\x1b[95m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_BLUE  </span><span class="s2">&quot;\x1b[94m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_GREEN </span><span class="s2">&quot;\x1b[94m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_RED   </span><span class="s2">&quot;\x1b[94m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_CYAN  </span><span class="s2">&quot;\x1b[94m&quot;</span>
+<span class="s0">#define </span><span class="s1">BRIGHT_WHITE </span><span class="s2">&quot;\x1b[94m&quot;</span>
+<span class="s0">#define </span><span class="s1">ERROR_COLOR </span><span class="s2">&quot;\x1b[31m&quot;</span>
+<span class="s0">#define </span><span class="s1">INFO_COLOR </span><span class="s2">&quot;\x1b[32m&quot;</span>
+<span class="s0">#define </span><span class="s1">DEBUG_COLOR </span><span class="s2">&quot;\x1b[34m&quot;</span>
+<span class="s0">#define </span><span class="s1">TRACE_COLOR </span><span class="s2">&quot;\x1b[36m&quot;</span>
+
+<span class="s3">// Structures</span>
+<span class="s4">typedef struct </span><span class="s1">Lettre </span><span class="s5">{</span>
+    <span class="s4">char </span><span class="s1">lettre</span><span class="s5">;</span>
+    <span class="s4">struct </span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">suivant</span><span class="s5">;</span>
+<span class="s5">} </span><span class="s1">Lettre</span><span class="s5">;</span>
+
+<span class="s4">typedef struct </span><span class="s1">Joueur </span><span class="s5">{</span>
+    <span class="s4">char </span><span class="s1">nom</span><span class="s5">[</span><span class="s6">50</span><span class="s5">];</span>
+    <span class="s4">int </span><span class="s1">score</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">tempsTotal</span><span class="s5">; </span><span class="s3">// Ajout de tempsTotal pour stocker le temps total pris par le joueur</span>
+    <span class="s4">struct </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">suivant</span><span class="s5">;</span>
+<span class="s5">} </span><span class="s1">Joueur</span><span class="s5">;</span>
+
+<span class="s3">// Prototypes des fonctions</span>
+<span class="s4">void </span><span class="s1">ajouterLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">**</span><span class="s1">liste</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">);</span>
+<span class="s4">int </span><span class="s1">rechercherLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">liste</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">afficherMotMasque</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">devinees</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">afficherMotComplet</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">);</span>
+<span class="s4">int </span><span class="s1">verifierLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">);</span>
+<span class="s4">int </span><span class="s1">motDevine</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">devinees</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">lireMot</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">**</span><span class="s1">mot</span><span class="s5">);</span>
+<span class="s4">int </span><span class="s1">longueurMot</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">jouerSolo</span><span class="s5">(</span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">jouerGroupe</span><span class="s5">(</span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">jouer</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s4">int </span><span class="s1">mode</span><span class="s5">, </span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">currentJoueur</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">);</span>
+<span class="s4">void </span><span class="s1">afficherScores</span><span class="s5">(</span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">);</span>
+<span class="s1">Joueur</span><span class="s5">* </span><span class="s1">determinerGagnant</span><span class="s5">(</span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">);</span>
+
+<span class="s3">// Ajoute une lettre à une liste chaînée</span>
+<span class="s4">void </span><span class="s1">ajouterLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">**</span><span class="s1">liste</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">) {</span>
+    <span class="s1">Lettre </span><span class="s5">*</span><span class="s1">nouvelle </span><span class="s5">= (</span><span class="s1">Lettre </span><span class="s5">*)</span><span class="s1">malloc</span><span class="s5">(</span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Lettre</span><span class="s5">));</span>
+    <span class="s1">nouvelle</span><span class="s5">-&gt;</span><span class="s1">lettre </span><span class="s5">= </span><span class="s1">c</span><span class="s5">;</span>
+    <span class="s1">nouvelle</span><span class="s5">-&gt;</span><span class="s1">suivant </span><span class="s5">= *</span><span class="s1">liste</span><span class="s5">;</span>
+    <span class="s5">*</span><span class="s1">liste </span><span class="s5">= </span><span class="s1">nouvelle</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+<span class="s3">// Recherche une lettre dans une liste chaînée</span>
+<span class="s4">int </span><span class="s1">rechercherLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">liste</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">) {</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">liste </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">liste</span><span class="s5">-&gt;</span><span class="s1">lettre </span><span class="s5">== </span><span class="s1">c</span><span class="s5">)</span>
+            <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s1">liste </span><span class="s5">= </span><span class="s1">liste</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+<span class="s3">// Affiche le mot masqué</span>
+<span class="s4">void </span><span class="s1">afficherMotMasque</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">devinees</span><span class="s5">) {</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">mot </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">)</span>
+ <span class="s5">{</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">rechercherLettre</span><span class="s5">(</span><span class="s1">devinees</span><span class="s5">, </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">lettre</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;%c &quot;</span><span class="s5">, </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">lettre</span><span class="s5">);</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;_ &quot;</span><span class="s5">);</span>
+        <span class="s5">}</span>
+        <span class="s1">mot </span><span class="s5">= </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s3">// affiche le modele du hangman</span>
+<span class="s4">void </span><span class="s1">afficherHangman</span><span class="s5">(</span><span class="s4">int </span><span class="s1">tentatives</span><span class="s5">,</span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+    <span class="s4">const char </span><span class="s5">*</span><span class="s1">hangman</span><span class="s5">[] = {</span>
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; /|     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; /|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; /|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; /      |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; /|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; / </span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; //|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  / </span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; //|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; // </span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+        <span class="s2">&quot;   _____</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   |     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;   O     |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; //|</span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot; //| </span><span class="s4">\\    </span><span class="s2">|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        |</span><span class="s4">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;  ______|</span><span class="s4">\n</span><span class="s2">&quot;</span>
+
+    <span class="s5">};</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">tentatives </span><span class="s5">&lt; </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_RED</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">%s</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">hangman</span><span class="s5">[</span><span class="s1">tentatives</span><span class="s5">]);</span>
+    <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_RED</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">%s</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">hangman</span><span class="s5">[</span><span class="s6">6</span><span class="s5">]);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+
+
+<span class="s3">// Affiche le mot complet.</span>
+<span class="s4">void </span><span class="s1">afficherMotComplet</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Le mot a deviner etait : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">mot </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;%c&quot;</span><span class="s5">, </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">lettre</span><span class="s5">);</span>
+        <span class="s1">mot </span><span class="s5">= </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+
+<span class="s3">// Vérifie si une lettre est présente dans le mot</span>
+<span class="s4">int </span><span class="s1">verifierLettre</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s4">char </span><span class="s1">c</span><span class="s5">) {</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">mot </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">lettre </span><span class="s5">== </span><span class="s1">c</span><span class="s5">)</span>
+            <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s1">mot </span><span class="s5">= </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+<span class="s3">// Vérifie si le mot est entièrement deviné</span>
+<span class="s4">int </span><span class="s1">motDevine</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">devinees</span><span class="s5">) {</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">mot </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(!</span><span class="s1">rechercherLettre</span><span class="s5">(</span><span class="s1">devinees</span><span class="s5">, </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">lettre</span><span class="s5">))</span>
+            <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+        <span class="s1">mot </span><span class="s5">= </span><span class="s1">mot</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+<span class="s3">//demande a l'arbitre d'entrer un mot et le lire avec contrôle de saisie</span>
+<span class="s4">void </span><span class="s1">lireMot</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">**</span><span class="s1">mot</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">texte</span><span class="s5">[</span><span class="s6">50</span><span class="s5">];</span>
+    <span class="s4">int </span><span class="s1">valide </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+
+    <span class="s4">while </span><span class="s5">(!</span><span class="s1">valide</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">INFO_COLOR</span><span class="s2">&quot;Arbitre!. Veuillez entrer le mot à deviner (attention! Compose uniquement des lettres) : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">fgets</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">, </span><span class="s6">50</span><span class="s5">, </span><span class="s1">stdin</span><span class="s5">);</span>
+        <span class="s1">texte</span><span class="s5">[</span><span class="s1">strcspn</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">, </span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">)] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+
+        <span class="s1">valide </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">); </span><span class="s1">i</span><span class="s5">++) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">isalpha</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">[</span><span class="s1">i</span><span class="s5">])) {</span>
+                <span class="s1">valide </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur ! le mot doit contenir uniquement des lettres.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+
+    <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">) - </span><span class="s6">1</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&gt;= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i</span><span class="s5">--) {</span>
+        <span class="s1">ajouterLettre</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">tolower</span><span class="s5">(</span><span class="s1">texte</span><span class="s5">[</span><span class="s1">i</span><span class="s5">]));</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+
+<span class="s3">// determiner le Gagnant</span>
+<span class="s1">Joueur</span><span class="s5">* </span><span class="s1">determinerGagnant</span><span class="s5">(</span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">) {</span>
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">gagnant </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">scoreMax </span><span class="s5">= -</span><span class="s6">1</span><span class="s5">;</span>
+
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">current </span><span class="s5">= </span><span class="s1">joueurs</span><span class="s5">;</span>
+    <span class="s4">do </span><span class="s5">{</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">current </span><span class="s5">!= </span><span class="s1">arbitre </span><span class="s5">&amp;&amp; </span><span class="s1">current</span><span class="s5">-&gt;</span><span class="s1">score </span><span class="s5">&gt; </span><span class="s1">scoreMax</span><span class="s5">) {</span>
+            <span class="s1">scoreMax </span><span class="s5">= </span><span class="s1">current</span><span class="s5">-&gt;</span><span class="s1">score</span><span class="s5">;</span>
+            <span class="s1">gagnant </span><span class="s5">= </span><span class="s1">current</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">current </span><span class="s5">= </span><span class="s1">current</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">} </span><span class="s4">while </span><span class="s5">(</span><span class="s1">current </span><span class="s5">!= </span><span class="s1">joueurs</span><span class="s5">); </span><span class="s3">// Boucle circulaire</span>
+
+    <span class="s4">return </span><span class="s1">gagnant</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+
+<span class="s3">// Mode solo : Le programme choisit des mots aléatoires</span>
+<span class="s3">//ajout du fichier</span>
+<span class="s4">void </span><span class="s1">jouerSolo</span><span class="s5">(</span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fichier </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s2">&quot;C:/Users/AFFES/CLionProjects/untitled1/bddsolo.txt&quot;</span><span class="s5">, </span><span class="s2">&quot;r&quot;</span><span class="s5">); </span><span class="s3">// Ouvre le fichier en mode lecture</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fichier </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur : impossible d'ouvrir le fichier 'basededonne'.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// Lire les mots du fichier et les stocker dans un tableau dynamique</span>
+    <span class="s4">char </span><span class="s1">mots</span><span class="s5">[</span><span class="s6">200</span><span class="s5">][</span><span class="s6">20</span><span class="s5">]; </span><span class="s3">// maximum 200 mots de 20 caractères</span>
+    <span class="s4">int </span><span class="s1">nombreMots </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">mots</span><span class="s5">[</span><span class="s1">nombreMots</span><span class="s5">], </span><span class="s6">20</span><span class="s5">, </span><span class="s1">fichier</span><span class="s5">) != </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">mots</span><span class="s5">[</span><span class="s1">nombreMots</span><span class="s5">][</span><span class="s1">strcspn</span><span class="s5">(</span><span class="s1">mots</span><span class="s5">[</span><span class="s1">nombreMots</span><span class="s5">], </span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">)] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">nombreMots</span><span class="s5">++;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">nombreMots </span><span class="s5">&gt;= </span><span class="s6">200</span><span class="s5">) {</span>
+            <span class="s4">break</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fichier</span><span class="s5">); </span><span class="s3">// Fermer le fichier</span>
+
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">nombreMots </span><span class="s5">== </span><span class="s6">0</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">YELLOW</span><span class="s2">&quot;Le fichier est vide ou ne contient pas de mots valides.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// Choisir un mot aléatoire parmi ceux lus</span>
+    <span class="s1">srand</span><span class="s5">(</span><span class="s1">time</span><span class="s5">(</span><span class="s1">NULL</span><span class="s5">)); </span><span class="s3">// Initialiser le générateur de nombres aléatoires</span>
+    <span class="s4">int </span><span class="s1">indiceAleatoire </span><span class="s5">= </span><span class="s1">rand</span><span class="s5">() % </span><span class="s1">nombreMots</span><span class="s5">;</span>
+    <span class="s4">const char </span><span class="s5">*</span><span class="s1">motAleatoire </span><span class="s5">= </span><span class="s1">mots</span><span class="s5">[</span><span class="s1">indiceAleatoire</span><span class="s5">];</span>
+
+    <span class="s3">// Construire la liste chaînée pour le mot choisi</span>
+    <span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">motAleatoire</span><span class="s5">) - </span><span class="s6">1</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&gt;= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i</span><span class="s5">--) {</span>
+        <span class="s1">ajouterLettre</span><span class="s5">(&amp;</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">motAleatoire</span><span class="s5">[</span><span class="s1">i</span><span class="s5">]);</span>
+    <span class="s5">}</span>
+
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">YELLOW</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">Vous avez choisi  mode solo  !</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">jouer</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">NULL</span><span class="s5">, </span><span class="s6">1</span><span class="s5">, </span><span class="s1">maxTentatives</span><span class="s5">, </span><span class="s1">NULL</span><span class="s5">, </span><span class="s1">NULL</span><span class="s5">);</span>
+<span class="s5">}</span>
+
+
+<span class="s4">void </span><span class="s1">jouerGroupe</span><span class="s5">(</span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">modeGroupe</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">nbJoueurs</span><span class="s5">;</span>
+
+    <span class="s3">// Choisir le mode de jeu</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">INFO_COLOR</span><span class="s2">&quot;</span><span class="s4">\n </span><span class="s2">Veuillez entrer votre choix pour le mode groupe :</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;1. Jouer avec arbitre</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;2. Jouer avec des mots aleatoires</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">CYAN</span><span class="s2">&quot; votre choix est : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">modeGroupe</span><span class="s5">);</span>
+    <span class="s1">getchar</span><span class="s5">();</span>
+
+    <span class="s3">// Demander le nombre de joueurs en effectuant le controle de saisie en fonction du mode choisi</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">modeGroupe </span><span class="s5">== </span><span class="s6">1</span><span class="s5">) {</span>
+            <span class="s3">// Si le mode est avec arbitre, le nombre de joueurs doit être entre 3 et 10</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot; Veuillez choisir le nombre de joueurs (le nombre doit etre entre 3 et 10) : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">nbJoueurs</span><span class="s5">);</span>
+            <span class="s1">getchar</span><span class="s5">();</span>
+
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">nbJoueurs </span><span class="s5">&gt;= </span><span class="s6">3 </span><span class="s5">&amp;&amp; </span><span class="s1">nbJoueurs </span><span class="s5">&lt;= </span><span class="s6">10</span><span class="s5">) {</span>
+                <span class="s4">break</span><span class="s5">; </span><span class="s3">// Sortir de la boucle si le nombre de joueurs est valide</span>
+            <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur : Le nombre de joueurs doit être superieur a 3 et inferieur a 10.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s5">}</span>
+        <span class="s5">} </span><span class="s4">else if </span><span class="s5">(</span><span class="s1">modeGroupe </span><span class="s5">== </span><span class="s6">2</span><span class="s5">) {</span>
+            <span class="s3">// Si le mode est avec mots aléatoires, le nombre de joueurs doit être entre 2 et 10</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot; Veuillez choisir le nombre de joueurs (le nombre doit etre entre 2 et 10) : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">nbJoueurs</span><span class="s5">);</span>
+            <span class="s1">getchar</span><span class="s5">();</span>
+
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">nbJoueurs </span><span class="s5">&gt;= </span><span class="s6">2 </span><span class="s5">&amp;&amp; </span><span class="s1">nbJoueurs </span><span class="s5">&lt;= </span><span class="s6">10</span><span class="s5">) {</span>
+                <span class="s4">break</span><span class="s5">; </span><span class="s3">// Sortir de la boucle si le nombre de joueurs est valide</span>
+            <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur : Le nombre de joueurs doit être superieur a 2 et inferieur 10.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s5">}</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">YELLOW</span><span class="s2">&quot;Choix invalide, veuillez entrer 1 pour arbitre ou 2 pour mots aléatoires.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">CYAN</span><span class="s2">&quot;Votre choix est  : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">modeGroupe</span><span class="s5">);</span>
+            <span class="s1">getchar</span><span class="s5">();</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// Création des joueurs</span>
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">, *</span><span class="s1">dernier </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">nbJoueurs</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+        <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">nouveau </span><span class="s5">= (</span><span class="s1">Joueur </span><span class="s5">*)</span><span class="s1">malloc</span><span class="s5">(</span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Joueur</span><span class="s5">));</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Entrez le nom du joueur %d : &quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">i </span><span class="s5">+ </span><span class="s6">1</span><span class="s5">);</span>
+        <span class="s1">fgets</span><span class="s5">(</span><span class="s1">nouveau</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">, </span><span class="s6">50</span><span class="s5">, </span><span class="s1">stdin</span><span class="s5">);</span>
+        <span class="s1">nouveau</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">[</span><span class="s1">strcspn</span><span class="s5">(</span><span class="s1">nouveau</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">, </span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">)] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">nouveau</span><span class="s5">-&gt;</span><span class="s1">score </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+        <span class="s1">nouveau</span><span class="s5">-&gt;</span><span class="s1">suivant </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">joueurs </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s1">joueurs </span><span class="s5">= </span><span class="s1">nouveau</span><span class="s5">;</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s1">dernier</span><span class="s5">-&gt;</span><span class="s1">suivant </span><span class="s5">= </span><span class="s1">nouveau</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">dernier </span><span class="s5">= </span><span class="s1">nouveau</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">dernier</span><span class="s5">-&gt;</span><span class="s1">suivant </span><span class="s5">= </span><span class="s1">joueurs</span><span class="s5">; </span><span class="s3">// Rendre la liste circulaire</span>
+
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">; </span><span class="s3">// Désigner l'arbitre de la partie</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">modeGroupe </span><span class="s5">== </span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s4">int </span><span class="s1">choixArbitre</span><span class="s5">;</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Entrez le numéro de l'arbitre (entre 1 et %d) : &quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">nbJoueurs</span><span class="s5">);</span>
+        <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+            <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">choixArbitre</span><span class="s5">);</span>
+            <span class="s1">getchar</span><span class="s5">();</span>
+
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">choixArbitre </span><span class="s5">&gt;= </span><span class="s6">1 </span><span class="s5">&amp;&amp; </span><span class="s1">choixArbitre </span><span class="s5">&lt;= </span><span class="s1">nbJoueurs</span><span class="s5">) {</span>
+                <span class="s4">break</span><span class="s5">; </span><span class="s3">// Si le numéro est valide, sortir de la boucle</span>
+            <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur ! Le numero de l'arbitre doit être entre 1 et %d. Veuillez réessayer : &quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">nbJoueurs</span><span class="s5">);</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+
+        <span class="s1">arbitre </span><span class="s5">= </span><span class="s1">joueurs</span><span class="s5">;</span>
+        <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">1</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">choixArbitre</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+            <span class="s1">arbitre </span><span class="s5">= </span><span class="s1">arbitre</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">currentJoueur </span><span class="s5">= </span><span class="s1">joueurs</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">currentJoueur </span><span class="s5">== </span><span class="s1">arbitre</span><span class="s5">) {</span>
+            <span class="s1">currentJoueur </span><span class="s5">= </span><span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+
+        <span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">modeGroupe </span><span class="s5">== </span><span class="s6">2</span><span class="s5">) {</span>
+            <span class="s3">// Jouer avec des mots à partir d'un fichier</span>
+            <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fichier </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s2">&quot;C:/Users/AFFES/CLionProjects/untitled1/bddgroupe.txt&quot;</span><span class="s5">, </span><span class="s2">&quot;r&quot;</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">fichier </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur : impossible d'ouvrir le fichier des mots.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+                <span class="s4">return</span><span class="s5">;</span>
+            <span class="s5">}</span>
+
+            <span class="s3">// Compter le nombre de mots dans le fichier</span>
+            <span class="s4">int </span><span class="s1">nbMots </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+            <span class="s4">char </span><span class="s1">ligne</span><span class="s5">[</span><span class="s6">100</span><span class="s5">];</span>
+            <span class="s4">while </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">), </span><span class="s1">fichier</span><span class="s5">)) {</span>
+                <span class="s1">nbMots</span><span class="s5">++;</span>
+            <span class="s5">}</span>
+            <span class="s1">rewind</span><span class="s5">(</span><span class="s1">fichier</span><span class="s5">);</span>
+
+            <span class="s3">// Choisir un mot au hasard</span>
+            <span class="s1">srand</span><span class="s5">(</span><span class="s1">time</span><span class="s5">(</span><span class="s1">NULL</span><span class="s5">));</span>
+            <span class="s4">int </span><span class="s1">indexAleatoire </span><span class="s5">= </span><span class="s1">rand</span><span class="s5">() % </span><span class="s1">nbMots</span><span class="s5">;</span>
+
+            <span class="s3">// Lire le mot aléatoire</span>
+            <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt;= </span><span class="s1">indexAleatoire</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+                <span class="s1">fgets</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">), </span><span class="s1">fichier</span><span class="s5">);</span>
+            <span class="s5">}</span>
+
+
+            <span class="s1">ligne</span><span class="s5">[</span><span class="s1">strcspn</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">, </span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">)] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+
+            <span class="s3">// Ajouter les lettres du mot dans la liste chaînée</span>
+            <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">ligne</span><span class="s5">) - </span><span class="s6">1</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&gt;= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i</span><span class="s5">--) {</span>
+                <span class="s1">ajouterLettre</span><span class="s5">(&amp;</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">ligne</span><span class="s5">[</span><span class="s1">i</span><span class="s5">]);</span>
+            <span class="s5">}</span>
+            <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fichier</span><span class="s5">); </span><span class="s3">// Fermer le fichier</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">CYAN</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">L'arbitre %s va choisir  un mot pour %s.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">arbitre</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">, </span><span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">);</span>
+            <span class="s1">lireMot</span><span class="s5">(&amp;</span><span class="s1">mot</span><span class="s5">);</span>
+        <span class="s5">}</span>
+
+        <span class="s1">jouer</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">joueurs</span><span class="s5">, </span><span class="s6">2</span><span class="s5">, </span><span class="s1">maxTentatives</span><span class="s5">, </span><span class="s1">currentJoueur</span><span class="s5">, </span><span class="s1">arbitre</span><span class="s5">);</span>
+
+        <span class="s3">// Exclure l'arbitre de la notion du score</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">currentJoueur </span><span class="s5">!= </span><span class="s1">arbitre</span><span class="s5">) {</span>
+            <span class="s3">//  mettre les scores de tous les joueurs participant sauf l'arbitre</span>
+        <span class="s5">}</span>
+
+        <span class="s1">currentJoueur </span><span class="s5">= </span><span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">; </span><span class="s3">// Passer au joueur suivant</span>
+
+            <span class="s4">char </span><span class="s1">continuer</span><span class="s5">;</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">INFO_COLOR</span><span class="s2">&quot; si vous voulez quitter le jeu choisisez non 'n' ou 'N' sinon tapez sur n'importe quelle lettre: &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot; %c&quot;</span><span class="s5">, &amp;</span><span class="s1">continuer</span><span class="s5">);</span>
+            <span class="s1">getchar</span><span class="s5">();</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">continuer </span><span class="s5">== </span><span class="s2">'n' </span><span class="s5">|| </span><span class="s1">continuer </span><span class="s5">== </span><span class="s2">'N'</span><span class="s5">) </span><span class="s4">break</span><span class="s5">;</span>
+
+
+    <span class="s5">}</span>
+
+    <span class="s1">afficherScores</span><span class="s5">(</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">arbitre</span><span class="s5">);</span>
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">gagnant </span><span class="s5">= </span><span class="s1">determinerGagnant</span><span class="s5">(</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">arbitre</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">BOLD BRIGHT_MAGENTA</span><span class="s2">&quot;</span><span class="s4">\n </span><span class="s2">Bravo ! le gagnant  est %s avec %d points!</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">gagnant</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">, </span><span class="s1">gagnant</span><span class="s5">-&gt;</span><span class="s1">score</span><span class="s5">);</span>
+<span class="s5">}</span>
+
+
+
+<span class="s4">void </span><span class="s1">jouer</span><span class="s5">(</span><span class="s1">Lettre </span><span class="s5">*</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s4">int </span><span class="s1">mode</span><span class="s5">, </span><span class="s4">int </span><span class="s1">maxTentatives</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">currentJoueur</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">) {</span>
+    <span class="s1">Lettre </span><span class="s5">*</span><span class="s1">devinees </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s1">Lettre </span><span class="s5">*</span><span class="s1">proposees </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">tentatives </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+
+    <span class="s3">// Début du chronométrage</span>
+    <span class="s1">clock_t debut </span><span class="s5">= </span><span class="s1">clock</span><span class="s5">();</span>
+
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">tentatives </span><span class="s5">&lt; </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">Mot a deviner : &quot;</span><span class="s5">);</span>
+        <span class="s1">afficherMotMasque</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">devinees</span><span class="s5">);</span>
+
+        <span class="s3">// Affiche l'état du pendu</span>
+        <span class="s1">afficherHangman</span><span class="s5">(</span><span class="s1">tentatives</span><span class="s5">,</span><span class="s1">maxTentatives</span><span class="s5">);</span>
+
+        <span class="s4">char </span><span class="s1">lettre</span><span class="s5">;</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Proposez une lettre : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot; %c&quot;</span><span class="s5">, &amp;</span><span class="s1">lettre</span><span class="s5">);</span>
+        <span class="s1">getchar</span><span class="s5">();</span>
+
+        <span class="s1">lettre </span><span class="s5">= </span><span class="s1">tolower</span><span class="s5">(</span><span class="s1">lettre</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">rechercherLettre</span><span class="s5">(</span><span class="s1">proposees</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">YELLOW</span><span class="s2">&quot;Vous avez deja propose cette lettre.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+
+        <span class="s1">ajouterLettre</span><span class="s5">(&amp;</span><span class="s1">proposees</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">);</span>
+
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">verifierLettre</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">GREEN</span><span class="s2">&quot;Continuez!La lettre %c est correcte !</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">);</span>
+            <span class="s1">ajouterLettre</span><span class="s5">(&amp;</span><span class="s1">devinees</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">motDevine</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">, </span><span class="s1">devinees</span><span class="s5">)) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_GREEN</span><span class="s2">&quot;FELICITATIONS! %s, vous avez devine le mot !</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">);</span>
+
+                <span class="s3">// Calcul du temps écoulé</span>
+                <span class="s1">clock_t fin </span><span class="s5">= </span><span class="s1">clock</span><span class="s5">();</span>
+                <span class="s4">double </span><span class="s1">tempsPris </span><span class="s5">= (</span><span class="s4">double</span><span class="s5">)(</span><span class="s1">fin </span><span class="s5">- </span><span class="s1">debut</span><span class="s5">) / </span><span class="s1">CLOCKS_PER_SEC</span><span class="s5">;</span>
+
+                <span class="s3">// Ajustement du score et du temps total</span>
+                <span class="s4">if </span><span class="s5">(</span><span class="s1">currentJoueur </span><span class="s5">!= </span><span class="s1">arbitre</span><span class="s5">) {</span>
+                    <span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">tempsTotal </span><span class="s5">+= (</span><span class="s4">int</span><span class="s5">)</span><span class="s1">tempsPris</span><span class="s5">;</span>
+                    <span class="s4">int </span><span class="s1">bonus </span><span class="s5">= (</span><span class="s4">int</span><span class="s5">)(</span><span class="s6">10 </span><span class="s5">- </span><span class="s1">tempsPris</span><span class="s5">);</span>
+                    <span class="s4">if </span><span class="s5">(</span><span class="s1">bonus </span><span class="s5">&lt; </span><span class="s6">1</span><span class="s5">) </span><span class="s1">bonus </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+                    <span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">score </span><span class="s5">+= </span><span class="s1">bonus</span><span class="s5">;</span>
+                <span class="s5">}</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">RED</span><span class="s2">&quot;Malheureusement ,la lettre %c est incorrecte.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">lettre</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">currentJoueur </span><span class="s5">!= </span><span class="s1">arbitre</span><span class="s5">) {</span>
+                <span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">score </span><span class="s5">-= </span><span class="s6">1</span><span class="s5">;</span>
+            <span class="s5">}</span>
+            <span class="s1">tentatives</span><span class="s5">++;</span>
+        <span class="s5">}</span>
+
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">tentatives </span><span class="s5">== </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+            <span class="s1">afficherMotComplet</span><span class="s5">(</span><span class="s1">mot</span><span class="s5">);</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">tentatives </span><span class="s5">&gt;= </span><span class="s1">maxTentatives</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_RED</span><span class="s2">&quot;Desole %s, vous avez epuise toutes vos tentatives.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">currentJoueur</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">);</span>
+        <span class="s1">afficherHangman</span><span class="s5">(</span><span class="s1">tentatives</span><span class="s5">,</span><span class="s1">maxTentatives</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+
+
+
+
+
+<span class="s4">void </span><span class="s1">afficherScores</span><span class="s5">(</span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueurs</span><span class="s5">, </span><span class="s1">Joueur </span><span class="s5">*</span><span class="s1">arbitre</span><span class="s5">) {</span>
+    <span class="s1">Joueur </span><span class="s5">*</span><span class="s1">joueursc </span><span class="s5">= </span><span class="s1">joueurs</span><span class="s5">;</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_BLUE</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">--- Scores des joueurs ---</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_BLUE</span><span class="s2">&quot;Formule de calcul du score :</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_BLUE</span><span class="s2">&quot;  - Score de base = nombre de mots devines correctement.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_BLUE</span><span class="s2">&quot;  - Bonus de rapidite : si un mot est devine en moins de 10 secondes, un bonus de 5 points est ajoute.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+
+
+    <span class="s4">do </span><span class="s5">{</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">joueursc </span><span class="s5">!= </span><span class="s1">arbitre</span><span class="s5">) { </span><span class="s3">// scores des joueurs privé de l'arbitre</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;Nom : %s</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">nom</span><span class="s5">);</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;  - Score de base : %d points</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">score</span><span class="s5">);</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;  - Temps total pris : %d msecondes</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">tempsTotal</span><span class="s5">);</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;  - Détails du calcul du score :</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;    * Score = %d points (base sur les mots devines)</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">score</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">tempsTotal </span><span class="s5">&lt; </span><span class="s6">100</span><span class="s5">) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;    * Bonus de rapidite ajoute : 5 points</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">BRIGHT_YELLOW</span><span class="s2">&quot;    * Score total avec bonus : %d points</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">, </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">score </span><span class="s5">+ </span><span class="s6">5</span><span class="s5">);</span>
+            <span class="s5">}</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">);</span>
+        <span class="s5">}</span>
+        <span class="s1">joueursc </span><span class="s5">= </span><span class="s1">joueursc</span><span class="s5">-&gt;</span><span class="s1">suivant</span><span class="s5">;</span>
+    <span class="s5">} </span><span class="s4">while </span><span class="s5">(</span><span class="s1">joueursc </span><span class="s5">!= </span><span class="s1">joueurs</span><span class="s5">);</span>
+<span class="s5">}</span>
+
+
+
+
+<span class="s4">int </span><span class="s1">main</span><span class="s5">() {</span>
+    <span class="s4">int </span><span class="s1">choix</span><span class="s5">, </span><span class="s1">maxTentatives</span><span class="s5">;</span>
+    <span class="s4">do </span><span class="s5">{</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">BOLD BRIGHT_BLUE</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">--- Bienvenue au jeu du Pendu ---</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">UNDERLINE BRIGHT_CYAN</span><span class="s2">&quot;*** c'est le temps pour commencer  ***</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Saisir le nombre maximale d'echec (Attention! le nombre ne doit pas depasser  10) : &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">maxTentatives</span><span class="s5">);</span>
+        <span class="s1">getchar</span><span class="s5">();</span>
+
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">maxTentatives </span><span class="s5">&lt; </span><span class="s6">1 </span><span class="s5">|| </span><span class="s1">maxTentatives </span><span class="s5">&gt; </span><span class="s6">10</span><span class="s5">) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s1">ERROR_COLOR</span><span class="s2">&quot;Erreur : Le nombre d'echec doit etre entre 1 et 10.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;</span><span class="s4">\n</span><span class="s2">Choix1: Mode Solo</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Choix2: Mode Groupe</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">TRACE_COLOR</span><span class="s2">&quot;Choix3: Quitter le jeu pendu.BYE!</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s1">INFO_COLOR</span><span class="s2">&quot;Votre choix est: &quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s1">scanf</span><span class="s5">(</span><span class="s2">&quot;%d&quot;</span><span class="s5">, &amp;</span><span class="s1">choix</span><span class="s5">);</span>
+        <span class="s1">getchar</span><span class="s5">();</span>
+
+        <span class="s4">switch </span><span class="s5">(</span><span class="s1">choix</span><span class="s5">) {</span>
+            <span class="s4">case </span><span class="s6">1</span><span class="s1">:</span>
+                <span class="s1">jouerSolo</span><span class="s5">(</span><span class="s1">maxTentatives</span><span class="s5">);</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">2</span><span class="s1">:</span>
+                <span class="s1">jouerGroupe</span><span class="s5">(</span><span class="s1">maxTentatives</span><span class="s5">);</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">3</span><span class="s1">:</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">YELLOW</span><span class="s2">&quot;Merci d'avoir joue ! A bientot.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">default</span><span class="s1">:</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s1">INFO_COLOR</span><span class="s2">&quot;Aucun choix n'etait saisi. Veuillez ressayer.</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s1">RESET</span><span class="s5">);</span>
+        <span class="s5">}</span>
+    <span class="s5">} </span><span class="s4">while </span><span class="s5">(</span><span class="s1">choix </span><span class="s5">!= </span><span class="s6">3</span><span class="s5">);</span>
+
+    <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+<span class="s5">}</span>
+</pre>
+</body>
+</html>
